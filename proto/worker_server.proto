@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package workerServer;
+
+option go_package = "server/;workerServer";
+
+message requestInfo {
+  // request type HTTP or HTTPS
+  string type = 1;
+
+  // request method: GET POST PUT DELETE PATCH...
+  string method = 2;
+
+  // path & host
+  string host = 3;
+  string path = 4;
+
+  // request headers
+  map<string, string> headers = 5;
+
+  // request params
+  map<string, string> params = 6;
+
+  // request body
+  map<string, string> body = 7;
+}
+
+message taskInfo {
+  string taskName = 1;
+
+  // Maximum Running users
+  int32 maxNumber = 2;
+
+  // task running time
+  int64 time = 3; // seconds
+}
+
+message options {// option是proto file的关键字...
+  // whether the request requires authentication
+  bool authorization = 1;
+
+  // whether to send a notification after the task ends
+  bool notification = 2;
+
+  // other options
+  map<string, bool> other = 3;
+}
+
+message taskResult {
+  taskInfo task = 1;
+  //  float tps = 2;
+  //  int64 totalRequestNum = 3;
+}
+
+message receiveTask {
+  taskInfo task = 1;
+  requestInfo request = 2;
+
+  // ramp up users started/second
+  int32 rampUp = 3;
+
+  options opts = 4;
+}
+
+message sendTaskResult {
+  taskResult result = 1;
+}
+
+service Worker {
+  rpc ReceiveTask(receiveTask) returns (google.protobuf.Empty);
+  rpc SendTaskResult(google.protobuf.Empty) returns (sendTaskResult);
+}
